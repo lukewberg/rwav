@@ -1,0 +1,9 @@
+[package]
+name = "rwav"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+block = "0.1.6"
+bytemuck = {version = "1.14.3", features = ["derive"]}
+objc = "0.2.7"
