@@ -1,9 +1,11 @@
 use std::path::Path;
 
-use rwav::wav::WavHeader;
+use clap::Parser;
+use rwav::{cli::Cli, wav::WavHeader};
 
 fn main() {
     println!("Hello, world!");
-    let file_path = Path::new(r"/Users/lukeberg/Downloads/Overture.wav");
+    let cli = Cli::parse();
+    let file_path = Path::new(&(*cli.input));
     WavHeader::parse(file_path);
 }

@@ -2,8 +2,13 @@
 name = "rwav"
 version = "0.1.0"
 edition = "2021"
+about = ["A tool to read modify and write wav files"]
 
 [dependencies]
 block = "0.1.6"
-bytemuck = {version = "1.14.3", features = ["derive"]}
+bytemuck = { version = "1.14.3", features = ["derive"] }
+clap = {version = "4.5.1", features = ["derive"]}
 objc = "0.2.7"
+
+[build-dependencies]
+bindgen = "0.69.4"
