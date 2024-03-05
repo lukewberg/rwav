@@ -6,7 +6,7 @@ fn main() {
 
     // Tell cargo to tell rustc to link the system bzip2
     // shared library.
-    // println!("cargo:rustc-link-lib=AudioToolbox");
+    println!("cargo:rustc-link-lib=framework=AudioToolbox");
 
     // Locate the AudioToolbox sdk
     let mut command = Command::new("xcrun");
@@ -17,27 +17,43 @@ fn main() {
 
     if !child.status.success() {
         // Handle the case where xcrun fails
-        eprintln!("Error running xcrun: {}", String::from_utf8_lossy(&child.stderr));
+        eprintln!(
+            "Error running xcrun: {}",
+            String::from_utf8_lossy(&child.stderr)
+        );
         std::process::exit(1);
     }
 
     let binding = String::from_utf8(child.stdout).unwrap();
     let sdk_path = binding.lines().next().unwrap();
-    println!("SDK PATH {}", sdk_path );
+    println!("SDK PATH {}", sdk_path);
 
     let bindings = bindgen::Builder::default()
-    .header(format!("{}/System/Library/Frameworks/AudioToolbox.framework/Headers/AudioToolbox.h", sdk_path))
-    .objc_extern_crate(false)
-    .block_extern_crate(false)
-    .generate_block(true)
-    .clang_args(["-isysroot", sdk_path])
-    .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
-    .generate()
-    .expect("Unable to generate bindings!");
+        .header(format!(
+            "{}/System/Library/Frameworks/AudioToolbox.framework/Headers/AudioToolbox.h",
+            sdk_path
+        ))
+        // .header(format!(
+        //     "{}/System/Library/Frameworks/CoreAudioTypes.framework/Headers/CoreAudioTypes.h",
+        //     sdk_path
+        // ))
+        .objc_extern_crate(false)
+        .block_extern_crate(false)
+        .generate_block(true)
+        .clang_args(["-isysroot", sdk_path, "-x", "objective-c", "-fblocks"])
+        .allowlist_function("AudioQueueNewOutput")
+        .allowlist_function("AudioQueueStart")
+        .allowlist_function("AudioQueuePrime")
+        .allowlist_function("AudioQueueFlush")
+        .allowlist_function("AudioQueueStop")
+        .allowlist_function("AudioQueuePause")
+        .allowlist_function("AudioQueueReset")
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+        .generate()
+        .expect("Unable to generate bindings!");
 
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    bindings.write_to_file(out_path.join("bindings.rs"))
-    .expect("Couldn't write bindings!");
-
-
+    bindings
+        .write_to_file(out_path.join("bindings.rs"))
+        .expect("Couldn't write bindings!");
 }

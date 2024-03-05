@@ -1,5 +1,4 @@
 use std::{
-    fmt::Display,
     fs,
     io::Read,
     path::Path,
@@ -7,41 +6,39 @@ use std::{
 
 use bytemuck::{Pod, Zeroable};
 
-use crate::AudioBalanceFade;
-
 pub struct WavSample {}
 
 #[derive(Debug, Copy, Clone, Pod, Zeroable)]
 #[repr(C)]
 pub struct WavHeader {
-    chunk_id: [u8; 4],
-    chunk_size: u32,
-    format: [u8; 4],
-    fmt: FmtSubChunk,
+    pub chunk_id: [u8; 4],
+    pub chunk_size: u32,
+    pub format: [u8; 4],
+    pub fmt: FmtSubChunk,
 }
 
 #[derive(Debug, Copy, Clone, Pod, Zeroable)]
 #[repr(C)]
-struct FmtSubChunk {
-    subchunk_1_id: [u8; 4],
-    subchunk_1_size: u32,
-    audio_format: u16,
-    num_channels: u16,
-    sample_rate: u32,
-    byte_rate: u32,
-    block_align: u16,
-    bits_per_sample: u16,
+pub struct FmtSubChunk {
+    pub subchunk_1_id: [u8; 4],
+    pub subchunk_1_size: u32,
+    pub audio_format: u16,
+    pub num_channels: u16,
+    pub sample_rate: u32,
+    pub byte_rate: u32,
+    pub block_align: u16,
+    pub bits_per_sample: u16,
 }
 
 #[derive(Debug, Copy, Clone, Pod, Zeroable)]
 #[repr(C)]
 struct DataSubChunk {
-    subchunk_2_id: [u8; 4],
-    subchunk_2_size: u32,
+    pub subchunk_2_id: [u8; 4],
+    pub subchunk_2_size: u32,
 }
 
 struct Data {
-    data: Box<[u8]>,
+    pub data: Box<[u8]>,
 }
 
 pub struct WavFile {}
