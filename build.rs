@@ -7,6 +7,7 @@ fn main() {
     // Tell cargo to tell rustc to link the system bzip2
     // shared library.
     println!("cargo:rustc-link-lib=framework=AudioToolbox");
+    println!("cargo:rustc-link-lib=framework=CoreFoundation");
 
     // Locate the AudioToolbox sdk
     let mut command = Command::new("xcrun");
@@ -48,6 +49,8 @@ fn main() {
         .allowlist_function("AudioQueueStop")
         .allowlist_function("AudioQueuePause")
         .allowlist_function("AudioQueueReset")
+        .allowlist_function("CFRunLoopGetCurrent")
+        .allowlist_item("kCFRunLoopDefaultMode")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("Unable to generate bindings!");
