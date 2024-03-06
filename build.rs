@@ -49,6 +49,7 @@ fn main() {
         .allowlist_function("AudioQueueStop")
         .allowlist_function("AudioQueuePause")
         .allowlist_function("AudioQueueReset")
+        .allowlist_function("AudioQueueAllocateBuffer")
         .allowlist_function("CFRunLoopGetCurrent")
         .allowlist_item("kCFRunLoopDefaultMode")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))

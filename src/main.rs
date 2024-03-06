@@ -22,8 +22,8 @@ fn main() {
 
     let description = AudioStreamBasicDescription {
         mSampleRate: header.fmt.sample_rate as f64,
-        mFormatID: rwav::utils::u32_transmute_ascii_str_le("lpcm").expect("Unable to transmute!"),
-        mFormatFlags: 1u32 << 2,
+        mFormatID: rwav::utils::ascii_transmute_u32_str_be("lpcm").expect("Unable to transmute!"),
+        mFormatFlags: 1u32 << 3 | 1u32 << 2,
         mBytesPerPacket: bytes_per_frame,
         mFramesPerPacket: 1u32,
         mBytesPerFrame: bytes_per_frame,
@@ -54,6 +54,9 @@ fn main() {
             0,
             &mut audio_queue,
         );
+        // let error_code = utils::u32_transmute_ascii_str_le(test as u32).unwrap();
+        // println!("{error_code:?}");
+        println!("{:?}", *audio_queue);
         let hello = 1 + 2;
     }
 }
