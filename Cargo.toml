@@ -2,7 +2,7 @@
 name = "rwav"
 version = "0.1.0"
 edition = "2021"
-about = ["A tool to read modify and write wav files"]
+about = ["A tool to read, modify, and write wav files"]
 
 [dependencies]
 block = "0.1.6"

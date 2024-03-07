@@ -7,10 +7,10 @@ pub mod utils {
 
     use crate::bindings::{AudioQueueBufferRef, AudioQueueRef};
 
-    pub fn ascii_transmute_u32_str_be(string: &str) -> Result<u32, &'static str> {
+    pub fn ascii_str_transmute_u32_be(string: &str) -> Result<u32, &'static str> {
         let bytes = (*string).as_bytes();
         if bytes.len() != 4 {
-            return Err("Incorect number of bytes!");
+            return Err("Incorrect number of bytes!");
         }
         let num_arr: [u8; 4] = bytes.try_into().unwrap();
         let num = u32::from_be_bytes(num_arr);
@@ -42,5 +42,32 @@ pub mod utils {
 #[allow(non_snake_case)]
 #[allow(dead_code)]
 pub mod bindings {
+    pub const kAppleLosslessFormatFlag_16BitSourceData: u32 = 1;
+    pub const kAppleLosslessFormatFlag_20BitSourceData: u32 = 2;
+    pub const kAppleLosslessFormatFlag_24BitSourceData: u32 = 3;
+    pub const kAppleLosslessFormatFlag_32BitSourceData: u32 = 4;
+    pub const kAudioFormatFlagIsAlignedHigh: u32 = 1 << 4;
+    pub const kAudioFormatFlagIsBigEndian: u32 = 1 << 1;
+    pub const kAudioFormatFlagIsFloat: u32 = 1 << 0;
+    pub const kAudioFormatFlagIsNonInterleaved: u32 = 1 << 5;
+    pub const kAudioFormatFlagIsNonMixable: u32 = 1 << 6;
+    pub const kAudioFormatFlagIsPacked: u32 = 1 << 3;
+    pub const kAudioFormatFlagIsSignedInteger: u32 = 1 << 2;
+    pub const kAudioFormatFlagsAreAllClear: u32 = 0x80000000;
+    pub const kAudioFormatFlagsNativeEndian: u32 = 0;
+    pub const kAudioFormatFlagsNativeFloatPacked: u32 =
+        kAudioFormatFlagIsFloat | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked;
+    pub const kLinearPCMFormatFlagIsAlignedHigh: u32 = kAudioFormatFlagIsAlignedHigh;
+    pub const kLinearPCMFormatFlagIsBigEndian: u32 = kAudioFormatFlagIsBigEndian;
+    pub const kLinearPCMFormatFlagIsFloat: u32 = kAudioFormatFlagIsFloat;
+    pub const kLinearPCMFormatFlagIsNonInterleaved: u32 = kAudioFormatFlagIsNonInterleaved;
+    pub const kLinearPCMFormatFlagIsNonMixable: u32 = kAudioFormatFlagIsNonMixable;
+    pub const kLinearPCMFormatFlagIsPacked: u32 = kAudioFormatFlagIsPacked;
+    pub const kLinearPCMFormatFlagIsSignedInteger: u32 = kAudioFormatFlagIsSignedInteger;
+    pub const kLinearPCMFormatFlagsAreAllClear: u32 = kAudioFormatFlagsAreAllClear;
+    pub const kLinearPCMFormatFlagsSampleFractionShift: u32 = 7;
+    pub const kLinearPCMFormatFlagsSampleFractionMask: u32 =
+        0x3F << kLinearPCMFormatFlagsSampleFractionShift;
+
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
