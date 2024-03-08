@@ -46,23 +46,24 @@ pub struct WavFile {
     pub handle: File,
     pub offset: u64,
     pub header: WavHeader,
-    pub data: Data,
 }
 
 #[derive(Debug, Copy, Clone, Pod, Zeroable)]
 #[repr(C)]
-pub struct ChunkInfo {
-    chunk_id: [u8; 4],
-    chunk_size: u32,
+pub struct ChunkHeader {
+    pub chunk_id: [u8; 4],
+    pub chunk_size: u32,
 }
 
-#[derive(Debug, Copy, Clone, Pod, Zeroable)]
+// #[derive(Debug, Copy, Clone, Pod, Zeroable)]
 #[repr(C)]
-pub struct Chunk {}
+pub struct Chunk {
+    pub chunk_header: ChunkHeader,
+    pub data: Vec<u8>,
+}
 
 impl WavHeader {
-    pub fn parse(path: &Path) -> Option<WavHeader> {
-        let mut file_handle = fs::File::open(path).expect("Unable to read file!");
+    pub fn parse(file_handle: &mut File) -> Option<WavHeader> {
         let mut file_buffer = vec![0u8; std::mem::size_of::<WavHeader>()];
         let vec = vec![10, 11].iter();
         file_handle.read_exact(&mut file_buffer).unwrap();
@@ -72,7 +73,18 @@ impl WavHeader {
     }
 }
 
-impl WavFile {}
+impl WavFile {
+    pub fn new(path: &Path) -> Self {
+        let mut file_handle = fs::File::open(path).expect("Unable to read file!");
+        let header = WavHeader::parse(&mut file_handle).unwrap();
+
+        WavFile {
+            handle: file_handle,
+            offset: 0,
+            header,
+        }
+    }
+}
 
 impl Iterator for WavFile {
     type Item = Chunk;
@@ -81,15 +93,26 @@ impl Iterator for WavFile {
         if self.offset == 0 {
             self.offset = std::mem::size_of::<WavHeader>() as u64;
         };
-        let mut info_buff = vec![0u8; std::mem::size_of::<ChunkInfo>()];
+        let mut info_buff = vec![0u8; std::mem::size_of::<ChunkHeader>()];
         // Read the chunk id and size
         self.handle
             .read_exact_at(&mut (*info_buff), self.offset)
             .unwrap();
-        let chunk_info = bytemuck::try_from_bytes::<ChunkInfo>(&info_buff)
+        let chunk_header = bytemuck::try_from_bytes::<ChunkHeader>(&info_buff)
             .expect("Unable to transmute chunk info!");
-        
-        None
+        self.offset = self.offset + std::mem::size_of::<ChunkHeader>() as u64;
+
+        let mut data_buffer = vec![0u8; chunk_header.chunk_size as usize];
+        self.handle
+            .read_exact_at(&mut data_buffer, self.offset)
+            .unwrap();
+
+        self.offset = self.offset + chunk_header.chunk_size as u64;
+
+        Some(Chunk {
+            chunk_header: *chunk_header,
+            data: data_buffer,
+        })
     }
 }
 

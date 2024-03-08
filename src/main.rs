@@ -1,21 +1,29 @@
+#![feature(ascii_char)]
 use std::{os::raw::c_void, path::Path};
 
 use clap::Parser;
 use rwav::{
     bindings::{
-        self, kAudioFormatFlagIsPacked, kAudioFormatFlagIsSignedInteger, kCFRunLoopDefaultMode, AudioQueueBufferRef, AudioQueueRef, AudioStreamBasicDescription, CFRunLoopGetCurrent
+        self, kAudioFormatFlagIsPacked, kAudioFormatFlagIsSignedInteger, kCFRunLoopDefaultMode,
+        AudioQueueBufferRef, AudioQueueRef, AudioStreamBasicDescription, CFRunLoopGetCurrent,
     },
     cli::Cli,
     utils::{self, TestData},
-    wav::WavHeader,
+    wav::{WavFile, WavHeader},
 };
 
 fn main() {
     println!("Hello, world!");
     let cli = Cli::parse();
     let file_path = Path::new(&(*cli.input));
-    let header = WavHeader::parse(file_path).unwrap();
+    let wav_file = WavFile::new(file_path);
+    let header = wav_file.header;
     print!("{header:?}");
+
+    wav_file.for_each(|chunk| {
+        let chunk_id = chunk.chunk_header.chunk_id.as_ascii().unwrap();
+        println!("{chunk_id:?}");
+    });
 
     let bytes_per_frame = ((header.fmt.num_channels * header.fmt.bits_per_sample) / 8) as u32;
 
@@ -35,9 +43,7 @@ fn main() {
 
     let fn_ptr = utils::test;
 
-    let test_data = TestData {
-        num: 4
-    };
+    let test_data = TestData { num: 4 };
 
     unsafe {
         let test = bindings::AudioQueueNewOutput(
@@ -52,7 +58,10 @@ fn main() {
 
         if test != 0i32 {
             let error_code = utils::u32_transmute_ascii_str_le(test as u32).unwrap();
-            panic!("Error calling AudioToolbox framework! Returned OSStatus: {} - {}", error_code, test);
+            panic!(
+                "Error calling AudioToolbox framework! Returned OSStatus: {} - {}",
+                error_code, test
+            );
         }
         // println!("{error_code:?}");
         // println!("{:?}", *audio_queue);
