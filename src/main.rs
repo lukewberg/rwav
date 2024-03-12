@@ -21,8 +21,18 @@ fn main() {
     print!("{header:?}");
 
     wav_file.for_each(|chunk| {
-        let chunk_id = chunk.chunk_header.chunk_id.as_ascii().unwrap();
-        println!("{chunk_id:?}");
+        // let chunk_id: &str = chunk.chunk_header.chunk_id.as_ascii().unwrap();
+        let chunk_id = String::from_utf8(chunk.chunk_header.chunk_id.to_vec()).unwrap();
+        match chunk_id.as_str() {
+            "info" => {
+                println!("Found INFO block!")
+            }
+            "data" => {
+                println!("Found DATA block!")
+            }
+            _ => ()
+        }
+        // println!("{chunk_id:?}");
     });
 
     let bytes_per_frame = ((header.fmt.num_channels * header.fmt.bits_per_sample) / 8) as u32;

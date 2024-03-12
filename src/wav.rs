@@ -92,7 +92,9 @@ impl Iterator for WavFile {
     fn next(&mut self) -> Option<Self::Item> {
         if self.offset == 0 {
             self.offset = std::mem::size_of::<WavHeader>() as u64;
-        };
+        } else if self.offset >= self.handle.metadata().unwrap().len() {
+            return None
+        }
         let mut info_buff = vec![0u8; std::mem::size_of::<ChunkHeader>()];
         // Read the chunk id and size
         self.handle
