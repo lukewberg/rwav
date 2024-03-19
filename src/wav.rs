@@ -65,7 +65,6 @@ pub struct Chunk {
 impl WavHeader {
     pub fn parse(file_handle: &mut File) -> Option<WavHeader> {
         let mut file_buffer = vec![0u8; std::mem::size_of::<WavHeader>()];
-        let vec = vec![10, 11].iter();
         file_handle.read_exact(&mut file_buffer).unwrap();
         let header = bytemuck::try_from_bytes::<WavHeader>(&file_buffer)
             .expect("Unable to transmute wav header!");
@@ -93,7 +92,7 @@ impl Iterator for WavFile {
         if self.offset == 0 {
             self.offset = std::mem::size_of::<WavHeader>() as u64;
         } else if self.offset >= self.handle.metadata().unwrap().len() {
-            return None
+            return None;
         }
         let mut info_buff = vec![0u8; std::mem::size_of::<ChunkHeader>()];
         // Read the chunk id and size
@@ -117,11 +116,3 @@ impl Iterator for WavFile {
         })
     }
 }
-
-// impl Display for WavHeader {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "Format header - {}", String::from_utf8_lossy(&self.format));
-//         write!(f, "Format block - {}", String::from_utf8_lossy(&self.format));
-//         write!(f, "Audio format - {}", String::from_utf8_lossy(&self.format));
-//     }
-// }

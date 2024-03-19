@@ -5,7 +5,10 @@ pub mod wav;
 pub mod utils {
     use core::slice;
 
-    use crate::bindings::{AudioQueueBufferRef, AudioQueueRef};
+    use crate::bindings::{
+        AudioQueueBufferRef, AudioQueueDispose, AudioQueueRef, AudioQueueStop, CFRunLoopGetCurrent,
+        CFRunLoopStop, OSStatus,
+    };
 
     pub fn ascii_str_transmute_u32_be(string: &str) -> Result<u32, &'static str> {
         let bytes = (*string).as_bytes();
@@ -28,7 +31,12 @@ pub mod utils {
         inAQ: AudioQueueRef,
         inBuffer: AudioQueueBufferRef,
     ) {
-        println!("{inAQ:?}");
+        unsafe {
+            let stop_status = AudioQueueStop(inAQ, 0);
+            let dispose_status = AudioQueueDispose(inAQ, 0);
+            CFRunLoopStop(CFRunLoopGetCurrent());
+            println!("STOP STATUS: {stop_status}\nDISPOSE_STATUS: {dispose_status}")
+        }
     }
 
     #[repr(C)]
