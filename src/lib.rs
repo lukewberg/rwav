@@ -1,6 +1,7 @@
 // pub mod bindings;
 pub mod cli;
 pub mod wav;
+pub mod audio;
 
 pub mod utils {
     use core::slice;

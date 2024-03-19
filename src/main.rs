@@ -14,7 +14,6 @@ use rwav::{
 };
 
 fn main() {
-    println!("Hello, world!");
     let cli = Cli::parse();
     let file_path = Path::new(&(*cli.input));
     let wav_file = WavFile::new(file_path);
