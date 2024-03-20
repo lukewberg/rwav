@@ -1,10 +1,11 @@
 // pub mod bindings;
+pub mod audio;
 pub mod cli;
 pub mod wav;
-pub mod audio;
 
 pub mod utils {
     use core::slice;
+    use std::ffi::c_void;
 
     use crate::bindings::{
         AudioQueueBufferRef, AudioQueueDispose, AudioQueueRef, AudioQueueStop, CFRunLoopGetCurrent,
@@ -25,6 +26,10 @@ pub mod utils {
         let bytes = number.to_be_bytes();
         let result = String::from_utf8_lossy(&bytes);
         return Ok(result.to_string());
+    }
+
+    pub fn get_cvoid_ptr<T>(ptr: &mut T) -> *mut c_void {
+        ptr as *mut T as *mut c_void
     }
 
     pub extern "C" fn test(
