@@ -8,6 +8,7 @@ fn main() {
     // shared library.
     println!("cargo:rustc-link-lib=framework=AudioToolbox");
     println!("cargo:rustc-link-lib=framework=CoreFoundation");
+    println!("cargo:rustc-link-lib=framework=CoreAudio");
 
     // Locate the AudioToolbox sdk
     let mut command = Command::new("xcrun");
@@ -52,6 +53,8 @@ fn main() {
         .allowlist_function("AudioQueueDispose")
         .allowlist_function("AudioQueueAllocateBuffer")
         .allowlist_function("AudioQueueEnqueueBuffer")
+        .allowlist_function("AudioObjectGetPropertyData")
+        .allowlist_function("AudioObjectGetPropertyDataSize")
         .allowlist_function("CFRunLoopGetCurrent")
         .allowlist_function("CFRunLoopRun")
         .allowlist_function("CFRunLoopStop")

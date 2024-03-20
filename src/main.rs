@@ -21,6 +21,8 @@ fn main() {
     let mut data_chunk: Option<Chunk> = None;
     print!("{header:?}");
 
+    rwav::audio::Audio::get_devices();
+
     wav_file.for_each(|chunk| {
         // let chunk_id: &str = chunk.chunk_header.chunk_id.as_ascii().unwrap();
         let chunk_id = String::from_utf8(chunk.chunk_header.chunk_id.to_vec()).unwrap();

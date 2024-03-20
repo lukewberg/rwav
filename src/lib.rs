@@ -78,5 +78,7 @@ pub mod bindings {
     pub const kLinearPCMFormatFlagsSampleFractionMask: u32 =
         0x3F << kLinearPCMFormatFlagsSampleFractionShift;
 
+    pub const kAudioObjectSystemObject: UInt32 = 1;
+
     include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 }
