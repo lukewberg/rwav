@@ -1,4 +1,5 @@
 use std::{ffi::c_void, mem::size_of, ptr};
+use windows::Media::AudioBuffer;
 
 use crate::{
     bindings::{self, kAudioObjectSystemObject, AudioObjectID, AudioObjectPropertyAddress, UInt32},
@@ -12,7 +13,8 @@ impl Audio {
         Audio {}
     }
 
-    pub fn get_devices() {
+    #[cfg(target_os = "macos")]
+    fn get_devices_darwin() {
         unsafe {
             let selector: [u8; 4] = "dev#"
                 .as_bytes()
@@ -50,5 +52,18 @@ impl Audio {
             data_size = data_size / size_of::<AudioObjectID>() as u32;
             println!("{os_status}");
         }
+    }
+
+    #[cfg(target_os = "windows")]
+    fn get_devices_nt() {
+        println!("Hello world, NT!")
+    }
+
+    pub fn get_devices() {
+        #[cfg(target_os = "windows")]
+        get_devices_nt();
+
+        #[cfg(target_os = "macos")]
+        get_devices_darwin();
     }
 }

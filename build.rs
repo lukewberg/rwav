@@ -1,7 +1,16 @@
 use std::{env, io::Read, path::PathBuf, process::Command};
 
 fn main() {
-    // Tell cargo to look for shared libraries in the specified directory
+    #[cfg(target_os = "macos")]
+    link_macos();
+
+    #[cfg(target_os = "windows")]
+    link_windows();
+}
+
+#[cfg(target_os = "macos")]
+fn link_macos() {
+        // Tell cargo to look for shared libraries in the specified directory
     // println!("cargo:rustc-link-search=/path/to/lib");
 
     // Tell cargo to tell rustc to link the system bzip2
@@ -68,4 +77,9 @@ fn main() {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+}
+
+#[cfg(target_os = "windows")]
+fn link_windows() {
+
 }
