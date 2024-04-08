@@ -1,6 +1,7 @@
 use std::{ffi::c_void, mem::size_of, ptr};
 use windows::Media::AudioBuffer;
 
+#[cfg(target_os = "macos")]
 use crate::{
     bindings::{self, kAudioObjectSystemObject, AudioObjectID, AudioObjectPropertyAddress, UInt32},
     utils,
@@ -61,9 +62,13 @@ impl Audio {
 
     pub fn get_devices() {
         #[cfg(target_os = "windows")]
-        get_devices_nt();
+        Self::get_devices_nt();
 
         #[cfg(target_os = "macos")]
-        get_devices_darwin();
+        Self::get_devices_darwin();
     }
+}
+
+pub struct SourceDescription {
+    
 }

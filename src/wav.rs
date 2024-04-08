@@ -1,9 +1,14 @@
 use std::{
     fs::{self, File},
     io::Read,
-    os::unix::fs::FileExt,
     path::Path,
 };
+
+#[cfg(target_os = "macos")]
+use std::os::unix::fs::FileExt;
+
+#[cfg(target_os = "windows")]
+use std::os::windows::fs::FileExt;
 
 use bytemuck::{Pod, Zeroable};
 
@@ -83,6 +88,30 @@ impl WavFile {
             header,
         }
     }
+
+    fn read_from_offset(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
+        #[cfg(target_os = "windows")]
+        let num_bytes = self.read_from_offset_nt(buf)?;
+
+        #[cfg(target_os = "macos")]
+        let num_bytes = self.read_from_offset_darwin(buf)?;
+
+        Ok(num_bytes)
+    }
+
+    #[inline(always)]
+    #[cfg(target_os = "windows")]
+    fn read_from_offset_nt(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
+        let num_bytes = self.handle.seek_read(buf, self.offset)?;
+        Ok(num_bytes)
+    }
+
+    #[inline(always)]
+    #[cfg(target_os = "macos")]
+    fn read_from_offset_darwin(&mut self, buf: &mut [u8]) -> Result<usize, ()> {
+        let num_bytes = self.handle.read_exact_at(buf, self.offset)?;
+        Ok(num_bytes)
+    }
 }
 
 impl Iterator for WavFile {
@@ -96,17 +125,13 @@ impl Iterator for WavFile {
         }
         let mut info_buff = vec![0u8; std::mem::size_of::<ChunkHeader>()];
         // Read the chunk id and size
-        self.handle
-            .read_exact_at(&mut (*info_buff), self.offset)
-            .unwrap();
+        self.read_from_offset(&mut (*info_buff)).unwrap();
         let chunk_header = bytemuck::try_from_bytes::<ChunkHeader>(&info_buff)
             .expect("Unable to transmute chunk info!");
         self.offset = self.offset + std::mem::size_of::<ChunkHeader>() as u64;
 
         let mut data_buffer = vec![0u8; chunk_header.chunk_size as usize];
-        self.handle
-            .read_exact_at(&mut data_buffer, self.offset)
-            .unwrap();
+        self.read_from_offset(&mut data_buffer).unwrap();
 
         self.offset = self.offset + chunk_header.chunk_size as u64;
 

@@ -7,6 +7,7 @@ pub mod utils {
     use core::slice;
     use std::ffi::c_void;
 
+    #[cfg(target_os = "macos")]
     use crate::bindings::{
         AudioQueueBufferRef, AudioQueueDispose, AudioQueueRef, AudioQueueStop, CFRunLoopGetCurrent,
         CFRunLoopStop, OSStatus,
@@ -33,6 +34,7 @@ pub mod utils {
     }
 
     #[allow(non_snake_case)]
+    #[cfg(target_os = "macos")]
     pub extern "C" fn test(
         inUserData: *mut ::std::os::raw::c_void,
         inAQ: AudioQueueRef,
@@ -85,7 +87,7 @@ pub mod bindings {
         pub const kLinearPCMFormatFlagsSampleFractionShift: u32 = 7;
         pub const kLinearPCMFormatFlagsSampleFractionMask: u32 =
             0x3F << kLinearPCMFormatFlagsSampleFractionShift;
-    
+
         pub const kAudioObjectSystemObject: UInt32 = 1;
     }
 
