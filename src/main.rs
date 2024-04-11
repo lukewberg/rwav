@@ -4,9 +4,11 @@ use std::{os::raw::c_void, path::Path, ptr};
 use clap::Parser;
 use rwav::{
     bindings::{
-        self, kAudioFormatFlagIsPacked, kAudioFormatFlagIsSignedInteger, kCFRunLoopCommonModes,
-        AudioQueueAllocateBuffer, AudioQueueBufferRef, AudioQueueEnqueueBuffer, AudioQueueRef,
-        AudioQueueStart, AudioStreamBasicDescription, CFRunLoopGetCurrent, CFRunLoopRun,
+        self,
+        flags::{kAudioFormatFlagIsPacked, kAudioFormatFlagIsSignedInteger},
+        kCFRunLoopCommonModes, AudioQueueAllocateBuffer, AudioQueueBufferRef,
+        AudioQueueEnqueueBuffer, AudioQueueRef, AudioQueueStart, AudioStreamBasicDescription,
+        CFRunLoopGetCurrent, CFRunLoopRun,
     },
     cli::Cli,
     utils::{self, TestData},
@@ -21,7 +23,8 @@ fn main() {
     let mut data_chunk: Option<Chunk> = None;
     print!("{header:?}");
 
-    rwav::audio::Audio::get_devices();
+    let device_ids = rwav::audio::Audio::get_device_ids().unwrap();
+    let name = rwav::audio::Audio::get_device_name(&device_ids[1]);
 
     wav_file.for_each(|chunk| {
         // let chunk_id: &str = chunk.chunk_header.chunk_id.as_ascii().unwrap();

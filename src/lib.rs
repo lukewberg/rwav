@@ -1,3 +1,4 @@
+#![feature(strict_provenance)]
 // pub mod bindings;
 pub mod audio;
 pub mod cli;
@@ -29,7 +30,7 @@ pub mod utils {
         return Ok(result.to_string());
     }
 
-    pub fn get_cvoid_ptr<T>(ptr: &mut T) -> *mut c_void {
+    pub fn get_cvoid_ptr<T: ?Sized>(ptr: &mut T) -> *mut c_void {
         ptr as *mut T as *mut c_void
     }
 
@@ -61,6 +62,8 @@ pub mod utils {
 pub mod bindings {
     #[cfg(target_os = "macos")]
     pub mod flags {
+        use super::{AudioObjectID, UInt32};
+
         pub const kAppleLosslessFormatFlag_16BitSourceData: u32 = 1;
         pub const kAppleLosslessFormatFlag_20BitSourceData: u32 = 2;
         pub const kAppleLosslessFormatFlag_24BitSourceData: u32 = 3;
@@ -89,6 +92,7 @@ pub mod bindings {
             0x3F << kLinearPCMFormatFlagsSampleFractionShift;
 
         pub const kAudioObjectSystemObject: UInt32 = 1;
+        pub type AudioDeviceId = AudioObjectID;
     }
 
     #[cfg(target_os = "macos")]

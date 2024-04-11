@@ -91,12 +91,17 @@ impl WavFile {
 
     fn read_from_offset(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
         #[cfg(target_os = "windows")]
-        let num_bytes = self.read_from_offset_nt(buf)?;
+        {
+            let num_bytes = self.read_from_offset_nt(buf)?;
+            return Ok(num_bytes);
+        }
 
         #[cfg(target_os = "macos")]
-        let num_bytes = self.read_from_offset_darwin(buf)?;
-
-        Ok(num_bytes)
+        {
+            self.read_from_offset_darwin(buf)?;
+            let num_bytes = buf.len();
+            return Ok(num_bytes)
+        }
     }
 
     #[inline(always)]
@@ -108,7 +113,7 @@ impl WavFile {
 
     #[inline(always)]
     #[cfg(target_os = "macos")]
-    fn read_from_offset_darwin(&mut self, buf: &mut [u8]) -> Result<usize, ()> {
+    fn read_from_offset_darwin(&mut self, buf: &mut [u8]) -> Result<(), std::io::Error> {
         let num_bytes = self.handle.read_exact_at(buf, self.offset)?;
         Ok(num_bytes)
     }

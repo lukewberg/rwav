@@ -1,4 +1,4 @@
-use std::{env, io::Read, path::PathBuf, process::Command};
+use std::{env, path::PathBuf, process::Command};
 
 fn main() {
     #[cfg(target_os = "macos")]
@@ -69,6 +69,8 @@ fn link_macos() {
         .allowlist_function("CFRunLoopStop")
         .allowlist_item("kCFRunLoopDefaultMode")
         .allowlist_item("kCFRunLoopCommonModes")
+        .allowlist_item("AudioDeviceId")
+        .allowlist_item("CFString")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("Unable to generate bindings!");
