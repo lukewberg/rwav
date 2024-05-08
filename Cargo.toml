@@ -9,6 +9,7 @@ block = "0.1.6"
 bytemuck = { version = "1.14.3", features = ["derive"] }
 clap = {version = "4.5.1", features = ["derive"]}
 objc = "0.2.7"
+thiserror = "1.0.60"
 
 [dependencies.windows]
 version = "0.54.0"

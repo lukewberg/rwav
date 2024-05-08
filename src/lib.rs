@@ -2,6 +2,7 @@
 // pub mod bindings;
 pub mod audio;
 pub mod cli;
+pub mod tests;
 pub mod wav;
 
 pub mod utils {
@@ -10,9 +11,21 @@ pub mod utils {
 
     #[cfg(target_os = "macos")]
     use crate::bindings::{
-        AudioQueueBufferRef, AudioQueueDispose, AudioQueueRef, AudioQueueStop, CFRunLoopGetCurrent,
-        CFRunLoopStop, OSStatus,
+        flags::kCFStringEncodingUTF8, AudioQueueBufferRef, AudioQueueDispose, AudioQueueRef,
+        AudioQueueStop, CFRelease, CFRunLoopGetCurrent, CFRunLoopStop, CFStringCreateWithCString,
+        CFStringRef, OSStatus,
     };
+
+    pub fn create_cfstring_from_rust(rust_str: &str) -> CFStringRef {
+        let c_str = std::ffi::CString::new(rust_str).unwrap();
+        unsafe {
+            CFStringCreateWithCString(std::ptr::null(), c_str.as_ptr(), kCFStringEncodingUTF8)
+        }
+    }
+
+    pub unsafe fn release_cfstring(string: CFStringRef) {
+        CFRelease(string as *const std::ffi::c_void);
+    }
 
     pub fn ascii_str_transmute_u32_be(string: &str) -> Result<u32, &'static str> {
         let bytes = (*string).as_bytes();
@@ -90,6 +103,7 @@ pub mod bindings {
         pub const kLinearPCMFormatFlagsSampleFractionShift: u32 = 7;
         pub const kLinearPCMFormatFlagsSampleFractionMask: u32 =
             0x3F << kLinearPCMFormatFlagsSampleFractionShift;
+        pub const kCFStringEncodingUTF8: u32 = 0x08000100; // UTF-8 encoding constant
 
         pub const kAudioObjectSystemObject: UInt32 = 1;
         pub type AudioDeviceId = AudioObjectID;

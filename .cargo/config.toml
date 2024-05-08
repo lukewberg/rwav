@@ -1,0 +1,4 @@
+# Target macos
+# [target.aarch64-apple-darwin]
+# linker = '/usr/bin/clang'
+# rustflags = ["-C", "link-arg=-bundle"]

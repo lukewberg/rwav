@@ -43,10 +43,6 @@ struct DataSubChunk {
     pub subchunk_2_size: u32,
 }
 
-struct Data {
-    pub data: Box<[u8]>,
-}
-
 pub struct WavFile {
     pub handle: File,
     pub offset: u64,
@@ -100,7 +96,7 @@ impl WavFile {
         {
             self.read_from_offset_darwin(buf)?;
             let num_bytes = buf.len();
-            return Ok(num_bytes)
+            return Ok(num_bytes);
         }
     }
 

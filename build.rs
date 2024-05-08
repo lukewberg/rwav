@@ -10,7 +10,7 @@ fn main() {
 
 #[cfg(target_os = "macos")]
 fn link_macos() {
-        // Tell cargo to look for shared libraries in the specified directory
+    // Tell cargo to look for shared libraries in the specified directory
     // println!("cargo:rustc-link-search=/path/to/lib");
 
     // Tell cargo to tell rustc to link the system bzip2
@@ -18,6 +18,7 @@ fn link_macos() {
     println!("cargo:rustc-link-lib=framework=AudioToolbox");
     println!("cargo:rustc-link-lib=framework=CoreFoundation");
     println!("cargo:rustc-link-lib=framework=CoreAudio");
+    // println!("cargo:rustc-link-arg=-bundle");
 
     // Locate the AudioToolbox sdk
     let mut command = Command::new("xcrun");
@@ -67,10 +68,13 @@ fn link_macos() {
         .allowlist_function("CFRunLoopGetCurrent")
         .allowlist_function("CFRunLoopRun")
         .allowlist_function("CFRunLoopStop")
+        .allowlist_function("CFStringGetCharacters")
+        .allowlist_function("CFStringCreateWithCString")
+        .allowlist_function("CFStringGetLength")
+        .allowlist_function("CFRelease")
         .allowlist_item("kCFRunLoopDefaultMode")
         .allowlist_item("kCFRunLoopCommonModes")
         .allowlist_item("AudioDeviceId")
-        .allowlist_item("CFString")
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("Unable to generate bindings!");
@@ -82,6 +86,4 @@ fn link_macos() {
 }
 
 #[cfg(target_os = "windows")]
-fn link_windows() {
-
-}
+fn link_windows() {}
