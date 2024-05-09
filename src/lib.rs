@@ -6,14 +6,13 @@ pub mod tests;
 pub mod wav;
 
 pub mod utils {
-    use core::slice;
     use std::ffi::c_void;
 
     #[cfg(target_os = "macos")]
     use crate::bindings::{
         flags::kCFStringEncodingUTF8, AudioQueueBufferRef, AudioQueueDispose, AudioQueueRef,
         AudioQueueStop, CFRelease, CFRunLoopGetCurrent, CFRunLoopStop, CFStringCreateWithCString,
-        CFStringRef, OSStatus,
+        CFStringRef,
     };
 
     pub fn create_cfstring_from_rust(rust_str: &str) -> CFStringRef {

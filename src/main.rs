@@ -75,8 +75,8 @@ fn main() {
             &mut audio_queue,
         );
 
-        let mut chunk = data_chunk.unwrap();
-        let alloc_status = AudioQueueAllocateBuffer(
+        let chunk = data_chunk.unwrap();
+        let _alloc_status = AudioQueueAllocateBuffer(
             audio_queue,
             chunk.chunk_header.chunk_size,
             &mut audio_buffer,
@@ -88,8 +88,8 @@ fn main() {
             .mAudioData
             .copy_from(raw_data_ptr, chunk.chunk_header.chunk_size as usize);
 
-        let enqueue_status = AudioQueueEnqueueBuffer(audio_queue, audio_buffer, 0, ptr::null());
-        let start_status = AudioQueueStart(audio_queue, ptr::null());
+        let _enqueue_status = AudioQueueEnqueueBuffer(audio_queue, audio_buffer, 0, ptr::null());
+        let _start_status = AudioQueueStart(audio_queue, ptr::null());
         CFRunLoopRun();
 
         if test != 0i32 {
@@ -101,6 +101,5 @@ fn main() {
         }
         // println!("{error_code:?}");
         // println!("{:?}", *audio_queue);
-        let hello = 1 + 2;
     }
 }

@@ -1,8 +1,4 @@
-use std::{
-    ffi::{c_void, CString},
-    mem::size_of,
-    ptr,
-};
+use std::{mem::size_of, ptr};
 
 use thiserror::Error;
 #[cfg(target_os = "windows")]
@@ -11,24 +7,82 @@ use windows::Media::AudioBuffer;
 #[cfg(target_os = "macos")]
 use crate::{
     bindings::{
-        self, flags::kAudioObjectSystemObject, AudioObjectID, AudioObjectPropertyAddress, UInt32,
+        self, flags::kAudioObjectSystemObject, flags::AudioDeviceId, AudioObjectGetPropertyData,
+        AudioObjectID, AudioObjectPropertyAddress, AudioObjectSetPropertyData, CFRange,
+        CFStringGetCharacters, CFStringGetLength, CFStringRef, UInt32,
     },
     utils,
-};
-use crate::{
-    bindings::{
-        flags::AudioDeviceId, AudioObjectGetPropertyData, CFRange, CFStringGetCharacters,
-        CFStringGetLength, CFStringRef,
-    },
-    utils::{create_cfstring_from_rust, release_cfstring},
+    utils::{create_cfstring_from_rust, get_cvoid_ptr, release_cfstring},
 };
 
 pub struct Audio(());
 
 impl Audio {
-    fn set_device_volume_darwin(device_id: &AudioDeviceId, left_channel: f32, right_channel: f32) -> Result<bool, AudioOperationError> {
+    #[inline(always)]
+    #[cfg(target_os = "macos")]
+    fn set_output_device_darwin(device_id: &AudioDeviceId) -> Result<bool, AudioOperationError> {
+        let mut device_id_copy = *device_id;
+        let property_size = std::mem::size_of::<u32>() as u32;
+        let property_address = AudioObjectPropertyAddress {
+            mSelector: 1682929012,
+            mScope: 1735159650,
+            mElement: 0,
+        };
+
+        let os_status = unsafe {
+            AudioObjectSetPropertyData(
+                1,
+                &property_address,
+                0,
+                std::ptr::null(),
+                property_size,
+                utils::get_cvoid_ptr(&mut device_id_copy),
+            )
+        };
+
+        if os_status > 0 {
+            return Err(AudioOperationError::SystemCommError);
+        }
+        Ok(true)
+    }
+
+    pub fn set_output_device(device_id: &AudioDeviceId) -> Result<bool, AudioOperationError> {
+        #[cfg(target_os = "macos")]
+        {
+            Self::set_output_device_darwin(device_id)
+        }
+    }
+
+    #[inline(always)]
+    #[cfg(target_os = "macos")]
+    fn get_devices_darwin() -> Result<Vec<(String, AudioDeviceId)>, AudioOperationError> {
+        let device_ids = Self::get_device_ids()?;
+        let mut result: Vec<(String, AudioDeviceId)> = Vec::with_capacity(device_ids.len());
+        for device in device_ids {
+            let name = Self::get_device_name(&device);
+            result.push((name, device));
+        }
+        Ok(result)
+    }
+
+    pub fn get_devices() -> Result<Vec<(String, AudioDeviceId)>, AudioOperationError> {
+        #[cfg(target_os = "macos")]
+        {
+            Self::get_devices_darwin()
+        }
+    }
+
+    #[inline(always)]
+    #[cfg(target_os = "macos")]
+    fn set_device_volume_darwin(
+        device_id: &AudioDeviceId,
+        left_channel: f32,
+        right_channel: f32,
+    ) -> Result<bool, AudioOperationError> {
         let mut channels = vec![0u32; 2];
         let mut property_size = (std::mem::size_of::<u32>() * 2) as u32;
+        let mut left_level = left_channel;
+        let mut right_level = right_channel;
 
         let mut property_address = AudioObjectPropertyAddress {
             mSelector: 1684236338,
@@ -36,7 +90,7 @@ impl Audio {
             mElement: 0,
         };
 
-        let os_status = unsafe {
+        let mut os_status = unsafe {
             AudioObjectGetPropertyData(
                 *device_id,
                 &property_address,
@@ -50,10 +104,59 @@ impl Audio {
         if os_status > 0 {
             return Err(AudioOperationError::SystemCommError);
         }
-        
+
+        property_address.mSelector = 1987013741;
+        property_size = std::mem::size_of::<f32>() as u32;
+        property_address.mElement = channels[0];
+
+        os_status = unsafe {
+            AudioObjectSetPropertyData(
+                *device_id,
+                &property_address,
+                0,
+                std::ptr::null(),
+                property_size,
+                utils::get_cvoid_ptr(&mut left_level),
+            )
+        };
+
+        if os_status > 0 {
+            return Err(AudioOperationError::SystemCommError);
+        }
+
+        property_address.mElement = channels[0];
+
+        os_status = unsafe {
+            AudioObjectSetPropertyData(
+                *device_id,
+                &property_address,
+                0,
+                std::ptr::null(),
+                property_size,
+                utils::get_cvoid_ptr(&mut right_level),
+            )
+        };
+
+        if os_status > 0 {
+            return Err(AudioOperationError::SystemCommError);
+        }
+
         Ok(true)
     }
 
+    pub fn set_device_volume(
+        device_id: &AudioDeviceId,
+        left_channel: f32,
+        right_channel: f32,
+    ) -> Result<bool, AudioOperationError> {
+        #[cfg(target_os = "macos")]
+        {
+            Self::set_device_volume_darwin(device_id, left_channel, right_channel)
+        }
+    }
+
+    #[inline(always)]
+    #[cfg(target_os = "macos")]
     fn get_device_names_darwin() -> Result<Vec<String>, AudioOperationError> {
         let device_ids = Self::get_device_ids_darwin()?;
         let mut device_names: Vec<String> = Vec::with_capacity(device_ids.len());
@@ -71,6 +174,8 @@ impl Audio {
         }
     }
 
+    #[inline(always)]
+    #[cfg(target_os = "macos")]
     fn is_output_device_darwin(device_id: &AudioDeviceId) -> Result<bool, AudioOperationError> {
         let mut property_size = 256u32;
         let property_address = AudioObjectPropertyAddress {
@@ -94,13 +199,14 @@ impl Audio {
         Ok(property_size > 0)
     }
 
-    pub fn is_output_device(device_id: &u32) -> Result<bool, AudioOperationError> {
+    pub fn is_output_device(device_id: &AudioDeviceId) -> Result<bool, AudioOperationError> {
         #[cfg(target_os = "macos")]
         {
             return Self::is_output_device_darwin(device_id);
         }
     }
 
+    #[inline(always)]
     #[cfg(target_os = "macos")]
     fn num_devices_darwin() -> Result<u32, AudioOperationError> {
         let selector: u32 =
@@ -147,6 +253,7 @@ impl Audio {
         return Ok(Self::num_devices_darwin()?);
     }
 
+    #[inline(always)]
     #[cfg(target_os = "macos")]
     fn get_device_ids_darwin() -> Result<Vec<AudioDeviceId>, AudioOperationError> {
         let num_devices = Self::num_devices().expect("Oops!");
@@ -180,13 +287,15 @@ impl Audio {
         Ok(devices)
     }
 
-    pub fn get_device_ids() -> Result<Vec<u32>, AudioOperationError> {
+    pub fn get_device_ids() -> Result<Vec<AudioDeviceId>, AudioOperationError> {
         #[cfg(target_os = "macos")]
         {
             return Self::get_device_ids_darwin();
         }
     }
 
+    #[inline(always)]
+    #[cfg(target_os = "macos")]
     fn get_device_name_darwin(device_id: &AudioDeviceId) -> Result<String, AudioOperationError> {
         // I guess CFStringRef is now a typealias for CFString, which is opaque and apparently size 0.
         // We'll use the ref type because it's the same and has a size
@@ -243,7 +352,7 @@ impl Audio {
         Ok(name?)
     }
 
-    pub fn get_device_name(id: &u32) -> String {
+    pub fn get_device_name(id: &AudioDeviceId) -> String {
         return Self::get_device_name_darwin(id).unwrap();
     }
 }
@@ -252,6 +361,38 @@ pub struct SourceDescription {
     pub bits_per_sample: u16,
     pub num_channels: u16,
     pub sample_rate: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum SessionState {
+    Initialized,
+    Started,
+    Paused,
+    Stopped,
+}
+
+pub struct AudioSession {
+    pub id: u32,
+    pub source_description: SourceDescription,
+    pub state: SessionState,
+    pub device: Option<AudioDeviceId>,
+}
+
+impl AudioSession {
+
+}
+
+pub struct AudioManager {
+    sessions: Vec<AudioSession>,
+}
+
+impl AudioManager {
+
+    pub fn new() -> Self {
+        Self {
+            sessions: Vec::new()
+        }
+    }
 }
 
 #[derive(Error, Debug)]

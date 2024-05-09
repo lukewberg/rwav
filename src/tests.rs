@@ -44,3 +44,17 @@ pub fn test_get_device_names() {
     println!("DEVICE NAMES: {:#?}", device_names);
     assert!(device_names.len() > 0);
 }
+
+#[test]
+pub fn set_device_volume() {
+    let device_ids = Audio::get_device_ids().unwrap();
+    let did_set_volume = Audio::set_device_volume(&device_ids[0], 0.5, 0.5).unwrap();
+    assert!(did_set_volume == true);
+}
+
+#[test]
+pub fn get_devices() {
+    let devices = Audio::get_devices().unwrap();
+    println!("DEVICES: {:#?}", devices);
+    assert!(devices.len() > 0);
+}

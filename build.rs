@@ -64,6 +64,7 @@ fn link_macos() {
         .allowlist_function("AudioQueueAllocateBuffer")
         .allowlist_function("AudioQueueEnqueueBuffer")
         .allowlist_function("AudioObjectGetPropertyData")
+        .allowlist_function("AudioObjectSetPropertyData")
         .allowlist_function("AudioObjectGetPropertyDataSize")
         .allowlist_function("CFRunLoopGetCurrent")
         .allowlist_function("CFRunLoopRun")
