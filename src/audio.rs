@@ -363,12 +363,47 @@ pub struct SourceDescription {
     pub sample_rate: u32,
 }
 
+pub struct DeviceDescription {
+    pub id: AudioDeviceId,
+    pub name: String,
+    // Source description not useful here, will be in the session
+    pub supported_sample_rates: Vec<DeviceSampleRates>,
+    pub supported_bit_depths: Vec<u16>,
+    pub supported_channels: Vec<u16>,
+    pub is_input: bool,
+    pub is_output: bool,
+    pub is_default: bool,
+    pub is_bluetooth: bool,
+    pub is_usb: bool,
+    pub is_hdmi: bool,
+    pub is_builtin: bool,
+    pub is_aggregate: bool,
+    pub is_loopback: bool,
+    pub is_muted: bool,
+    pub is_active: bool,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SessionState {
     Initialized,
     Started,
     Paused,
     Stopped,
+}
+
+pub enum DeviceSampleRates {
+    Hz8000,
+    Hz11025,
+    Hz16000,
+    Hz22050,
+    Hz44100,
+    Hz48000,
+    Hz88200,
+    Hz96000,
+    Hz176400,
+    Hz192000,
+    Hz352800,
+    Hz384000,
 }
 
 pub struct AudioSession {
